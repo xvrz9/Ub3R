@@ -1,0 +1,128 @@
+:host {
+  --auth-ink: #171717;
+  --auth-muted: #737373;
+  --auth-surface: #ffffff;
+}
+
+ion-header {
+  box-shadow: none;
+}
+
+ion-toolbar {
+  --background: #f5f5f3;
+  --color: var(--auth-ink);
+  --border-width: 0;
+  padding-inline: max(1rem, calc((100% - 720px) / 2));
+}
+
+ion-title {
+  font-size: 1rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+ion-content {
+  --background:
+    radial-gradient(ellipse at 50% 0%, rgba(220, 220, 215, 0.55), transparent 55%),
+    #f5f5f3;
+  --padding-top: 1.5rem;
+  --padding-bottom: 2rem;
+  --padding-start: 1.25rem;
+  --padding-end: 1.25rem;
+}
+
+ion-card {
+  width: 100%;
+  max-width: 680px;
+  margin: 0 auto;
+  padding: clamp(1.25rem, 5vw, 2rem);
+  border: 1px solid rgba(23, 23, 23, 0.06);
+  border-radius: 24px;
+  background: var(--auth-surface);
+  box-shadow: 0 24px 70px rgba(23, 23, 23, 0.09);
+}
+
+ion-card-header {
+  padding: 0.25rem 0 1.5rem;
+}
+
+ion-card-title {
+  color: var(--auth-ink);
+  font-size: clamp(1.75rem, 6vw, 2.15rem);
+  font-weight: 750;
+  letter-spacing: -0.055em;
+}
+
+ion-card-content {
+  padding: 0;
+}
+
+ion-item {
+  --background: #f6f6f4;
+  --border-color: transparent;
+  --border-radius: 14px;
+  --color: var(--auth-ink);
+  --highlight-color-focused: var(--auth-ink);
+  --inner-padding-end: 1rem;
+  --min-height: 64px;
+  margin-bottom: 0.8rem;
+  border: 1px solid #ededeb;
+  border-radius: 14px;
+  transition: border-color 160ms ease, box-shadow 160ms ease;
+}
+
+ion-item:focus-within {
+  border-color: #8d8d89;
+  box-shadow: 0 0 0 3px rgba(23, 23, 23, 0.07);
+}
+
+ion-input,
+ion-select {
+  --color: var(--auth-ink);
+  --placeholder-color: var(--auth-muted);
+  font-size: 0.98rem;
+}
+
+ion-text p {
+  margin: 0.75rem 0;
+  font-size: 0.9rem;
+}
+
+ion-button {
+  --border-radius: 14px;
+  --box-shadow: none;
+  min-height: 52px;
+  margin: 0.75rem 0 0;
+  font-weight: 650;
+  letter-spacing: 0;
+}
+
+ion-button:not([fill="clear"]) {
+  --background: #171717;
+  --background-hover: #333333;
+  --background-activated: #333333;
+  --color: #ffffff;
+}
+
+ion-button[fill="clear"] {
+  --color: var(--auth-ink);
+  font-size: 0.9rem;
+  text-transform: none;
+}
+
+@media (max-width: 520px) {
+  ion-content {
+    --padding-start: 0.85rem;
+    --padding-end: 0.85rem;
+  }
+
+  ion-card {
+    border-radius: 20px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  ion-item {
+    transition: none;
+  }
+}

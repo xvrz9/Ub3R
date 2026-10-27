@@ -1,0 +1,7 @@
+{
+  "name": "uber-frontend",
+  "integrations": {
+    "capacitor": {}
+  },
+  "type": "angular-standalone"
+}

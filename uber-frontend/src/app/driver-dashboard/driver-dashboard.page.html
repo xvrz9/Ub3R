@@ -1,0 +1,189 @@
+<ion-content class="u-mapa-pantalla" [scrollY]="false">
+  <div class="u-mapa-layout">
+
+    <!-- ===== Mapa ===== -->
+    <div class="u-mapa-layout__mapa">
+      <app-map
+        modo="conductor"
+        [origen]="mapaOrigen()"
+        [destino]="mapaDestino()"
+        [estado]="estadoMapa()"
+        [viajeId]="viaje()?.id ?? null"
+        [semilla]="idUsuario"
+        [pendientes]="mapaPendientes()"
+      ></app-map>
+
+      <div class="u-flotante">
+        <span class="u-brand u-brand--pildora"><span class="u-brand__logo">U</span>Ub3R <span class="u-brand__role">Conductor</span></span>
+        <button type="button" class="u-boton-flotante" (click)="salir()">Salir</button>
+      </div>
+    </div>
+
+    <!-- ===== Panel inferior ===== -->
+    <section class="u-panel">
+      <p class="u-panel__hola">Hola{{ nombre ? ', ' + nombre : '' }}</p>
+      <h1 class="u-panel__titulo">{{ viaje() ? 'Viaje en curso' : (disponible() ? 'Estás en línea' : 'Estás desconectado') }}</h1>
+
+      <div class="u-stack">
+        @if (info()) {
+          <div class="u-aviso u-aviso--ok u-entra">
+            {{ info() }}
+            <button type="button" class="u-aviso__cerrar" aria-label="Cerrar aviso" (click)="info.set('')">&times;</button>
+          </div>
+        }
+        @if (error()) {
+          <div class="u-aviso u-aviso--error u-entra">
+            {{ error() }}
+            <button type="button" class="u-aviso__cerrar" aria-label="Cerrar aviso" (click)="error.set('')">&times;</button>
+          </div>
+        }
+
+        @if (viaje(); as v) {
+          <!-- ===== Viaje en curso ===== -->
+          <div class="u-entra">
+            <div class="u-card__cabeza">
+              <div>
+                <h2 class="u-card__titulo">{{ etiqueta(v.status) }}</h2>
+                <p class="u-card__sub">Tarifa estimada</p>
+                <p class="u-precio u-precio--md">{{ moneda(v.estimated_fare) }}</p>
+              </div>
+              <span class="u-chip u-chip--verde"><span class="u-pulso"></span> Activo</span>
+            </div>
+
+            <div class="u-pasos">
+              @for (p of pasos; track p; let i = $index) {
+                <div class="u-paso" [class.u-paso--hecho]="i < paso(v.status)" [class.u-paso--actual]="i === paso(v.status)">
+                  {{ p }}
+                </div>
+              }
+            </div>
+
+            <div class="u-ruta u-mb">
+              <div class="u-ruta__punto">
+                <span class="u-ruta__icono"></span>
+                <div class="u-ruta__texto"><small>Recoger en</small><strong>{{ v.origin_name }}</strong></div>
+              </div>
+              <div class="u-ruta__punto">
+                <span class="u-ruta__icono u-ruta__icono--fin"></span>
+                <div class="u-ruta__texto"><small>Llevar a</small><strong>{{ v.destination_name }}</strong></div>
+              </div>
+            </div>
+
+            @if (v.client?.name) {
+              <div class="u-persona">
+                <div class="u-avatar">{{ v.client.name.charAt(0) }}</div>
+                <div class="u-persona__datos">
+                  <strong>{{ v.client.name }}</strong>
+                  <span>Pasajero</span>
+                </div>
+              </div>
+            }
+
+            @if (v.status === 'assigned') {
+              <button type="button" class="u-btn u-mt" (click)="llegar()" [disabled]="cargando()">
+                @if (cargando()) { <span class="u-spin"></span> } Llegué al punto de recogida
+              </button>
+            }
+            @if (v.status === 'driver_arrived') {
+              <button type="button" class="u-btn u-btn--verde u-mt" (click)="iniciar()" [disabled]="cargando()">
+                @if (cargando()) { <span class="u-spin"></span> } Iniciar viaje
+              </button>
+            }
+            @if (v.status === 'in_progress') {
+              <p class="u-subtitulo">Datos reales del recorrido</p>
+              <div class="u-grid-2">
+                <div class="u-campo">
+                  <label for="distancia">Distancia (km)</label>
+                  <input id="distancia" class="u-input" type="number" inputmode="decimal" min="0" step="0.1" [(ngModel)]="distancia" />
+                </div>
+                <div class="u-campo">
+                  <label for="duracion">Duración (min)</label>
+                  <input id="duracion" class="u-input" type="number" inputmode="numeric" min="0" step="1" [(ngModel)]="duracion" />
+                </div>
+              </div>
+              <button type="button" class="u-btn" (click)="finalizar()" [disabled]="cargando()">
+                @if (cargando()) { <span class="u-spin"></span> } Finalizar viaje
+              </button>
+            }
+          </div>
+        } @else {
+          <!-- ===== Disponibilidad ===== -->
+          <div class="u-card u-card--dark u-entra">
+            <div class="u-switch">
+              <div>
+                <h2 class="u-card__titulo">
+                  @if (disponible()) {
+                    <span class="u-chip u-chip--verde u-chip--en-titulo"><span class="u-pulso"></span> En línea</span>
+                  } @else {
+                    Desconectado
+                  }
+                </h2>
+                <p class="u-card__sub">
+                  @if (conectando()) { Conectando... }
+                  @else { {{ disponible() ? 'Recibiendo solicitudes de viaje' : 'Actívate para empezar a recibir viajes' }} }
+                </p>
+              </div>
+              <ion-toggle aria-label="Disponibilidad" [checked]="disponible()" [disabled]="conectando()" (ionChange)="onToggle($event)"></ion-toggle>
+            </div>
+          </div>
+
+          @if (disponible()) {
+            <p class="u-seccion">Solicitudes cercanas <small>Se actualiza cada 5 s</small></p>
+
+            @if (solicitudes().length === 0) {
+              <div class="u-vacio">
+                <span class="u-vacio__icono">
+                  <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <circle cx="12" cy="12" r="2" />
+                    <path d="M16.2 7.8a6 6 0 0 1 0 8.4M7.8 16.2a6 6 0 0 1 0-8.4M19 5a10 10 0 0 1 0 14M5 19A10 10 0 0 1 5 5" />
+                  </svg>
+                </span>
+                <strong>Esperando solicitudes</strong>
+                <p>Cuando un pasajero pida un viaje aparecerá aquí.</p>
+              </div>
+            }
+
+            @for (s of solicitudes(); track s.id) {
+              <div class="u-card u-entra">
+                <div class="u-card__cabeza u-card__cabeza--compacta">
+                  <div>
+                    <p class="u-precio u-precio--md">{{ moneda(s.estimated_fare) }}</p>
+                    <p class="u-precio__nota">{{ s.estimated_distance_km }} km{{ s.client?.name ? ' · ' + s.client.name : '' }}</p>
+                  </div>
+                  <span class="u-chip">Nuevo</span>
+                </div>
+
+                <div class="u-ruta u-ruta--compacta">
+                  <div class="u-ruta__punto">
+                    <span class="u-ruta__icono"></span>
+                    <div class="u-ruta__texto"><strong>{{ s.origin_name }}</strong></div>
+                  </div>
+                  <div class="u-ruta__punto">
+                    <span class="u-ruta__icono u-ruta__icono--fin"></span>
+                    <div class="u-ruta__texto"><strong>{{ s.destination_name }}</strong></div>
+                  </div>
+                </div>
+
+                <button type="button" class="u-btn u-mt" (click)="aceptar(s)" [disabled]="cargando()">
+                  @if (cargando()) { <span class="u-spin"></span> } Aceptar viaje
+                </button>
+              </div>
+            }
+          } @else {
+            <div class="u-vacio">
+              <span class="u-vacio__icono">
+                <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <path d="M5 17h14M6.5 17v2M17.5 17v2M4 17v-4l2-5.5A2 2 0 0 1 7.9 6h8.2a2 2 0 0 1 1.9 1.5L20 13v4M4 13h16" />
+                  <circle cx="7.5" cy="14.8" r=".6" fill="currentColor" />
+                  <circle cx="16.5" cy="14.8" r=".6" fill="currentColor" />
+                </svg>
+              </span>
+              <strong>Listo cuando tú lo estés</strong>
+              <p>Activa el interruptor para aparecer disponible y recibir viajes.</p>
+            </div>
+          }
+        }
+      </div>
+    </section>
+  </div>
+</ion-content>

@@ -1,0 +1,43 @@
+<ion-content class="u-auth">
+  <div class="u-auth__banda">
+    <div class="u-auth__banda-in">
+      <span class="u-brand"><span class="u-brand__logo">U</span>Ub3R</span>
+      <h1 class="u-auth__titulo">Muévete por Neiva<br />en minutos.</h1>
+      <p class="u-auth__lema">Pide un viaje o conduce y gana dinero.</p>
+    </div>
+  </div>
+
+  <form class="u-auth__tarjeta u-entra" (ngSubmit)="onLogin()">
+    <h2 class="u-card__titulo">Iniciar sesión</h2>
+    <p class="u-card__sub u-mb-20">Usa tu correo o tu número de teléfono.</p>
+
+    <div class="u-campo">
+      <label for="login">Correo o teléfono</label>
+      <input id="login" class="u-input" name="login" type="text" autocomplete="username"
+             placeholder="tucorreo@ejemplo.com" [(ngModel)]="login" />
+    </div>
+
+    <div class="u-campo">
+      <label for="password">Contraseña</label>
+      <div class="u-clave">
+        <input id="password" class="u-input" name="password" [type]="verClave ? 'text' : 'password'"
+               autocomplete="current-password" placeholder="Tu contraseña" [(ngModel)]="password" />
+        <button type="button" class="u-btn u-btn--link u-btn--sm u-clave__ver"
+                [attr.aria-label]="verClave ? 'Ocultar contraseña' : 'Ver contraseña'"
+                (click)="verClave = !verClave">
+          {{ verClave ? 'Ocultar' : 'Ver' }}
+        </button>
+      </div>
+    </div>
+
+    @if (error()) {
+      <div class="u-aviso u-aviso--error u-entra u-mb">{{ error() }}</div>
+    }
+
+    <button type="submit" class="u-btn u-mt" [disabled]="loading()">
+      @if (loading()) { <span class="u-spin"></span> Ingresando... } @else { Ingresar }
+    </button>
+
+    <p class="u-auth__pie">¿No tienes cuenta? <a routerLink="/register">Regístrate</a></p>
+  </form>
+</ion-content>

@@ -1,0 +1,164 @@
+<ion-header class="u-header">
+  <ion-toolbar class="u-topbar">
+    <span class="u-brand"><span class="u-brand__logo">U</span>Ub3R <span class="u-brand__role">Administrador</span></span>
+    <ion-buttons slot="end">
+      <ion-button class="u-topbar__salir" (click)="salir()">Salir</ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="u-content">
+  <div class="u-page u-page--wide">
+
+    <div class="u-hero">
+      <p class="u-hero__hola">Hola{{ nombre ? ', ' + nombre : '' }}</p>
+      <div class="u-hero__fila">
+        <h1 class="u-hero__titulo">Panel de control</h1>
+        <button type="button" class="u-btn u-btn--sm u-btn--blanco" (click)="actualizar()"
+                [disabled]="cargandoMetricas() || cargandoLista()">
+          @if (cargandoMetricas() || cargandoLista()) {
+            <span class="u-spin"></span>
+          } @else {
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M20 11a8 8 0 1 0-2.3 5.7M20 4v7h-7" />
+            </svg>
+          }
+          Actualizar
+        </button>
+      </div>
+    </div>
+
+    <div class="u-stack">
+
+      @if (info()) {
+        <div class="u-aviso u-aviso--ok u-entra">
+          {{ info() }}
+          <button type="button" class="u-aviso__cerrar" aria-label="Cerrar aviso" (click)="info.set('')">&times;</button>
+        </div>
+      }
+      @if (error()) {
+        <div class="u-aviso u-aviso--error u-entra">
+          {{ error() }}
+          <button type="button" class="u-aviso__cerrar" aria-label="Cerrar aviso" (click)="error.set('')">&times;</button>
+        </div>
+      }
+
+      <!-- ===== Métricas ===== -->
+      @if (errorMetricas()) {
+        <div class="u-card">
+          <div class="u-aviso u-aviso--error">{{ errorMetricas() }}</div>
+          <button type="button" class="u-btn u-btn--claro u-mt" (click)="cargarMetricas()" [disabled]="cargandoMetricas()">
+            @if (cargandoMetricas()) { <span class="u-spin"></span> } Reintentar
+          </button>
+        </div>
+      } @else if (cargandoMetricas() && metricas().length === 0) {
+        <div class="u-metricas">
+          @for (n of [1, 2, 3, 4, 5, 6, 7, 8]; track n) {
+            <div class="u-metrica u-metrica--cargando" [class.u-metrica--destacada]="n === 1"></div>
+          }
+        </div>
+      } @else {
+        <div class="u-metricas">
+          @for (m of metricas(); track m.nombre) {
+            <article class="u-metrica u-entra" [class.u-metrica--destacada]="m.destacada">
+              <div class="u-metrica__nombre">{{ m.nombre }}</div>
+              <div class="u-metrica__valor">{{ m.valor }}</div>
+            </article>
+          }
+        </div>
+      }
+
+      <!-- ===== Conductores ===== -->
+      <p class="u-seccion">Conductores</p>
+
+      <div class="u-segmento" role="tablist" aria-label="Estado de aprobación">
+        @for (p of pestanas; track p.estado) {
+          <button type="button" role="tab" [attr.aria-selected]="pestana() === p.estado"
+                  [class.u-segmento__activo]="pestana() === p.estado" (click)="elegirPestana(p.estado)">
+            {{ p.nombre }}
+          </button>
+        }
+      </div>
+
+      @if (cargandoLista() && conductores().length === 0) {
+        <div class="u-card u-vacio">
+          <span class="u-spin u-spin--oscuro"></span>
+          <p>Cargando conductores...</p>
+        </div>
+      } @else if (errorLista()) {
+        <div class="u-card">
+          <div class="u-aviso u-aviso--error">{{ errorLista() }}</div>
+          <button type="button" class="u-btn u-btn--claro u-mt" (click)="cargarConductores()" [disabled]="cargandoLista()">
+            @if (cargandoLista()) { <span class="u-spin"></span> } Reintentar
+          </button>
+        </div>
+      } @else if (conductores().length === 0) {
+        <div class="u-card u-vacio">
+          <span class="u-vacio__icono">
+            <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <circle cx="9" cy="8" r="3.5" />
+              <path d="M2.5 20a6.5 6.5 0 0 1 13 0M16 4.5a3.5 3.5 0 0 1 0 7M21.5 20a6.5 6.5 0 0 0-4-6" />
+            </svg>
+          </span>
+          <strong>Nada por aquí</strong>
+          <p>{{ vacio() }}</p>
+        </div>
+      } @else {
+        <div class="u-lista">
+          @for (d of conductores(); track d.id) {
+            <article class="u-card u-entra">
+              <div class="u-persona u-persona--plana">
+                <div class="u-avatar">{{ (d.user?.name || '?').charAt(0) }}</div>
+                <div class="u-persona__datos">
+                  <strong>{{ d.user?.name }}</strong>
+                  <span>{{ d.user?.email }}</span>
+                </div>
+                @if (pestana() === 'pending') {
+                  <span class="u-chip u-chip--ambar">Pendiente</span>
+                } @else if (pestana() === 'approved') {
+                  <span class="u-chip u-chip--verde">Aprobado</span>
+                } @else {
+                  <span class="u-chip u-chip--rojo">Rechazado</span>
+                }
+              </div>
+
+              <div class="u-mt">
+                <div class="u-dato"><span>Licencia</span><span>{{ d.license_number || 'Sin dato' }}</span></div>
+                @if (d.vehicles?.length) {
+                  <div class="u-dato">
+                    <span>Vehículo</span>
+                    <span>{{ d.vehicles[0].brand }} {{ d.vehicles[0].model }} <span class="u-placa u-placa--sm">{{ d.vehicles[0].plate }}</span></span>
+                  </div>
+                }
+              </div>
+
+              @if (pestana() === 'pending') {
+                @if (rechazando() === d.id) {
+                  <div class="u-confirmar u-entra">
+                    <label class="u-label" [for]="'nota-' + d.id">Motivo del rechazo (opcional)</label>
+                    <textarea [id]="'nota-' + d.id" class="u-input u-textarea" rows="3"
+                              placeholder="Rechazado por el administrador." [(ngModel)]="nota"></textarea>
+                    <div class="u-botones">
+                      <button type="button" class="u-btn u-btn--claro" (click)="cancelarRechazo()" [disabled]="procesando() === d.id">Volver</button>
+                      <button type="button" class="u-btn u-btn--rojo" (click)="confirmarRechazo(d)" [disabled]="procesando() !== null">
+                        @if (procesando() === d.id) { <span class="u-spin"></span> } Confirmar rechazo
+                      </button>
+                    </div>
+                  </div>
+                } @else {
+                  <div class="u-botones u-mt">
+                    <button type="button" class="u-btn u-btn--peligro" (click)="pedirRechazo(d)" [disabled]="procesando() !== null">Rechazar</button>
+                    <button type="button" class="u-btn" (click)="aprobar(d)" [disabled]="procesando() !== null">
+                      @if (procesando() === d.id) { <span class="u-spin"></span> } Aprobar
+                    </button>
+                  </div>
+                }
+              }
+            </article>
+          }
+        </div>
+      }
+
+    </div>
+  </div>
+</ion-content>
